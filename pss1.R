@@ -5,6 +5,11 @@ library(stringr)
 library(dplyr)
 library(tidyr)
 
+library(PerformanceAnalytics)
+
+library(mapproj)
+library(ggmap)  
+library(ggrepel)
 
 glrvs <- guides(fill=guide_legend(reverse = TRUE), color=guide_legend(reverse = TRUE)) 
 
@@ -201,7 +206,7 @@ ggplot(combind5M.gr %>% filter(cellid %in% cellid_heavy[1:3] & key %in% selKey),
 
 #########################################################
 ############
-library(PerformanceAnalytics)
+
 # options(warn = -1)
 
 combind1H <- spread(combind1H.gr, key, value)
@@ -412,8 +417,6 @@ grid.arrange(plot1, plot2, ncol=1)
 
 # 
 
-library(mapproj)
-library(ggmap)  
 cellLoc <-read.csv("coordi.csv")  
 # 중복된 데이터가 존재함. 한셀이 여러 좌표를 가지고 있음.
 # > nrow(cellLoc)
@@ -646,8 +649,9 @@ selectedDF <- merge(cellGroupTable %>%
 
 
 p.1 + geom_text(data=selectedDF, aes(lon,lat,label=time), check_overlap = T)
+# above graph does not display  all the time on which burden is the highest among the adjacent cells.
 
-
+# To resolve above problems, position_jitter is used, but...
 p.1 +   geom_point(data= selectedDF, aes(lon,lat)) +
         geom_text(data= selectedDF,  
                 aes(lon,lat,label=time,color=factor(time)), size=2,
@@ -662,8 +666,7 @@ p.1 + geom_point(data=selectedDF %>% filter(time==1),
 #p.1 + geom_point(data=cellLoc, aes(lon, lat))
 
 
-# 
-library(ggrepel)
+# Finally, using geom_text_repel, the problem is cleared....
 p.1 +   geom_point(data= selectedDF, aes(lon,lat)) +
         geom_text_repel(data= selectedDF,  
                   aes(lon,lat,label=time,color=factor(time)), 
@@ -675,7 +678,7 @@ p.1 +   geom_point(data= selectedDF, aes(lon,lat)) +
 
 
 
-
+# showing adjecent cells in background...
 p.1 +   geom_point(data= stat1H.1.800, aes(lon,lat), alpha=0.2) +
         geom_point(data= selectedDF, aes(lon,lat), color='red') 
 
@@ -683,11 +686,13 @@ p.1 +   geom_point(data= stat1H.1.800, aes(lon,lat), alpha=0.2) +
         geom_point(data= selectedDF, aes(lon,lat)) +
         geom_text_repel(data= selectedDF,  
                         aes(lon,lat,label=time,color=factor(time)), 
-                        #size=2,
+                        size=3,
                         box.padding = unit(0.0005, 'lines'),
                         point.padding = unit(0.0005, 'lines'),
                         #nudge_x =0.0003, nudge_y = 0.0002,
                         show.legend = FALSE) 
+
+# showing the region for selecting the adjacent cells
 
 
 circleFun <- function(center = c(0,0),radius = 1.5, npoints = 100){
